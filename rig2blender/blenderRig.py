@@ -11,7 +11,7 @@ def addSkeleton( name,
    boneOffsets ):
 
    import rig2pyHelper
-   
+
    # Create our rest pose, scaled by bone lengths if provided
    restPose = rig2pyHelper.createRestPose( "rig2pyBlender", boneLengths )
 
@@ -28,16 +28,16 @@ def addSkeleton( name,
    armature.edit_bones.remove( armature.edit_bones[ 0 ] )
 
    for restPoseBone in restPose.values():
-      
+
       # Create a new blender bone
       blenderBone = armature.edit_bones.new( restPoseBone.name )
-      
+
       # If we are not the root joint
       if restPoseBone.parent != None:
 
          # Connect the joints
          blenderBone.parent = armature.edit_bones[ restPoseBone.parent.name ]
-      
+
       # Set the head and tail
       blenderBone.head = restPoseBone.headAbs
       blenderBone.tail = restPoseBone.tailAbs
@@ -46,7 +46,7 @@ def addSkeleton( name,
       # I'm guessing this is due to the rest pose being specified as a vector and not quaternion.
       if restPoseBone.name.lower().endswith("ankle") or restPoseBone.name.lower().endswith("toebase"):
             blenderBone.roll = math.pi
-   
+
    # Back Into Object Mode
    bpy.ops.object.mode_set( mode='OBJECT' )
    
@@ -88,7 +88,7 @@ def poseSkeleton( rigId,
    offsets ):
 
    import rig2pyHelper
-   
+
    # Get the armature for this character
    skeleton = bpy.data.objects[ rigId ]
 
@@ -101,10 +101,10 @@ def poseSkeleton( rigId,
    bone.keyframe_insert( data_path='location', frame=frameNum )
 
    for bone in skeleton.pose.bones:
-   
+
       # Get the index of the quaternion in our data.
       index = rig2pyHelper.jointOrder.index( bone.name ) * 4
-      
+
       # Get the rotation from our data and set it for this frame
       # Our data is [x,y,z,w] but Blender's mathutils wants [w,x,y,z]
       bone.rotation_quaternion = Quaternion(( rotations[ index+3 ], rotations[ index ], rotations[ index+1 ], rotations[ index+2 ] ))
@@ -112,10 +112,10 @@ def poseSkeleton( rigId,
       if adjustForBlender and bone.name == "pelvis":
          adjustment = Quaternion((0.0, 0.0, 1.0), math.pi) @ Quaternion((1.0, 0.0, 0.0), math.pi / 2)
          bone.rotation_quaternion = adjustment @ bone.rotation_quaternion
-      
+
       # Insert this as a keyframe for this bone
       bone.keyframe_insert( data_path='rotation_quaternion', frame=frameNum )
-      
+
       # Move to the next 4 rotation values
       index = index + 4
 

@@ -45,7 +45,7 @@ def addPlot( poseData, ax ):
    xyzData = [float(numeric_string) for numeric_string in poseData.split( "," )]
 
    # Separate the components
-   xPoints = xyzData[ 0::3 ]
+   xPoints = xyzData[::3]
    yPoints = xyzData[ 1::3 ]
    zPoints = xyzData[ 2::3 ]
 
@@ -55,7 +55,7 @@ def addPlot( poseData, ax ):
    zPoints = [ z - zPoints[0] for z in zPoints ]
 
    # Plot individual sections so the lines connect as expected
-   plot( range(0,5),        ax, xPoints, yPoints, zPoints )
+   plot(range(5), ax, xPoints, yPoints, zPoints)
    plot( [0,5,6,7,8],       ax, xPoints, yPoints, zPoints )
    plot( [0,9,10,11,18,19], ax, xPoints, yPoints, zPoints )
    plot( [18,12,13,14],     ax, xPoints, yPoints, zPoints )
@@ -78,34 +78,30 @@ def plot( indices, ax, xPoints, yPoints, zPoints ):
       '-o' )
 
 def main( filenames ):
-   
+
    print( "Plotting the first frame for all characters" )
 
    # Create and layout our subplots
    numColumns=1
    while math.pow(numColumns,2) < len(filenames):
-      numColumns = numColumns + 1
+      numColumns += 1
 
    numRows = numColumns
    if numColumns * (numRows - 1) >= len(filenames):
-      numRows = numRows - 1
+      numRows -= 1
 
    fig = plt.figure()
    plt.axis('off')
 
-   i = 1
-   for filename in filenames:
+   # Set limits
+   limit=0.5
+   for i, filename in enumerate(filenames, start=1):
 
-      # Read the first line
-      file = open( filename , 'r' )
-      line = file.readline().split( '\n' )[0]
-      file.close()
-
+      with open( filename , 'r' ) as file:
+         line = file.readline().split( '\n' )[0]
       # Create a new plot
       ax = fig.add_subplot( numRows, numColumns, i, projection="3d" )
 
-      # Set limits
-      limit=0.5
       ax.set_xlim([-limit,limit])
       ax.set_ylim([-limit,limit])
       ax.set_zlim([-limit,limit])
@@ -114,9 +110,7 @@ def main( filenames ):
 
       # Add the plot
       addPlot( line, ax )
-      
-      i+=1
-   
+
    # Show the plot
    plt.show()
    

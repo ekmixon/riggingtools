@@ -30,9 +30,9 @@ class Bone:
       self.parent = None
       self.children = []
    def __repr__(self):
-      return self.name + " head:" + str(self.headAbs) + ", tail:" + str(self.tailAbs)
+      return f"{self.name} head:{str(self.headAbs)}, tail:{str(self.tailAbs)}"
 
-def traverseAndUpdate( refDictionary, rootName, rotateOffsets = False ):  
+def traverseAndUpdate( refDictionary, rootName, rotateOffsets = False ):
    """
    Recursive function that updates the humanoid hierarchy with absolute values
 
@@ -62,7 +62,12 @@ def traverseAndUpdate( refDictionary, rootName, rotateOffsets = False ):
    norm = (thisBone.tailAbs - thisBone.headAbs).magnitude
 
    # If we are not the root joint
-   if thisBone.parent != None:
+   if thisBone.parent is None:
+
+      # Assume head has already been set
+      thisBone.rotationAbs = thisBone.rotation
+
+   else:
 
       # Set the absolute rotation for this bone (still relative to the rest pose though)
       thisBone.rotationAbs = thisBone.parent.rotationAbs @ thisBone.rotation
@@ -72,22 +77,15 @@ def traverseAndUpdate( refDictionary, rootName, rotateOffsets = False ):
          thisBone.offset.rotate( thisBone.parent.rotationAbs )
 
       # Set the head to the tail (or head) of the parent + any offset.
-      if connectToHead.count( thisBone.name ) > 0:
-         thisBone.headAbs = thisBone.parent.headAbs + thisBone.offset
-      else:
-         thisBone.headAbs = thisBone.parent.tailAbs + thisBone.offset
-
-   else:
-
-      # Assume head has already been set
-      thisBone.rotationAbs = thisBone.rotation
-
+      thisBone.headAbs = (thisBone.parent.headAbs + thisBone.offset
+                          if connectToHead.count(thisBone.name) > 0 else
+                          thisBone.parent.tailAbs + thisBone.offset)
    # Create an vector of the correct bone length   
    poseVec = upVector * norm
 
    # Rotate this vector using this bone's absolute rotation
    poseVec.rotate( thisBone.rotationAbs )
-   
+
    # Set the tail
    thisBone.tailAbs = thisBone.headAbs + poseVec
 
@@ -134,7 +132,7 @@ def createRestPose( moduleName = "rig2py",
          # Connect
          newBone.parent = returnValue[ joint.parentName ]
          newBone.parent.children.append( newBone )
-      
+
       # Add the bone to our return value
       returnValue[ joint.name ] = newBone
 
@@ -148,7 +146,7 @@ def createRestPose( moduleName = "rig2py",
 
    # Update the hierarchy
    traverseAndUpdate( returnValue, rootName )
-   
+
    return returnValue
 
 def applyPose( restPose, location, lengths, rotations, offsets ):

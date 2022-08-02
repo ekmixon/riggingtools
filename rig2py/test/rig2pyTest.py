@@ -18,7 +18,7 @@ def processCommandLine( argv ):
    flagsOptions = {
       "-s": "modulePaths"
    }
-   
+
    # We're going to get the entire blender command line parameters, but all
    #   we care about are the ones after "--". We need at least N commandline parameters
    try:
@@ -48,7 +48,6 @@ def processCommandLine( argv ):
                counter += 2
          except:
             counter += 1
-            pass
       else:
          counter += 1
 
@@ -57,14 +56,14 @@ def processCommandLine( argv ):
 def onError( rigId,
    errorCode,
    description ):
-   
-   print( rigId + " had error " + str(errorCode) + ": " + description )
+
+   print(f"{rigId} had error {str(errorCode)}: {description}")
 
 # This is called per-character
 def onUpdateBounds( rigId,
    startFrame,
    endFrame ):
-   
+
    global globalStartFrame
    global globalEndFrame
 
@@ -73,17 +72,17 @@ def onUpdateBounds( rigId,
       globalStartFrame = startFrame
    if endFrame > globalEndFrame:
       globalEndFrame = endFrame
-      
+
    import rig2py
-   
+
    rigType = ""
    try:
       rigType = rig2py.getRigInfo( "", rigId, "type" )
    except RuntimeError as e:
       print( e )
       return
-   
-   if rigType == None or rigType == "":
+
+   if rigType is None or rigType == "":
       print( "Unknown rig type '" + rigType + "'" )
 
 def onFrame( rigId,
@@ -92,55 +91,55 @@ def onFrame( rigId,
    lengths,
    rotations,
    offsets ):
-   
+
    character = Character()
-   
+
    if rigId in characters:
       character = characters[ rigId ]
    else:
       character.name = rigId
       characters[rigId] = character
-      
+
    character.numFrames = character.numFrames + 1
-   
+
    if frameNum < character.startFrame:
       character.startFrame = frameNum
    if frameNum > character.endFrame:
       character.endFrame = frameNum
-      
+
    # Test the arrays by accessing every element
-   for i in range(0,3):
+   for i in range(3):
       value = location[i]
-      
+
       if abs(value) > 1000000:
          print( "'" + rigId + "' frame " + str(frameTimestamp) +
             ", location: Unreasonable value " + value )
          return
 
    if rotations != None:
-      for i in range(0, int(len(rotations)/4)):
-         for j in range(0,4):
+      for i in range(len(rotations) // 4):
+         for j in range(4):
             value = rotations[i*4+j];
-            
+
             if abs(value) > 1:
                print( "'" + rigId + "' frame " + str(frameTimestamp) +
                   ", rotation: Unreasonable value " + value )
                return
-               
+
    if lengths != None:
-      for i in range(0, len(lengths)):
+      for i in range(len(lengths)):
          value = lengths[i]
-         
+
          if value > 1000 or value <= 0.01:
             print( "'" + rigId + "' frame " + str(frameTimestamp) +
                ", length: Unreasonable value " + value )
             return
-            
+
    if offsets != None:
-      for i in range(0, int(len(offsets)/3)):
-         for j in range(0, 3):
+      for i in range(len(offsets) // 3):
+         for j in range(3):
             value = offsets[i*3+j];
-            
+
             if abs(value) > 100:
                print( "'" + rigId + "' frame " + str(frameTimestamp) +
                ", offset: Unreasonable value " + value )
@@ -161,7 +160,7 @@ def main():
    version = ""
    try:
       version = rig2py.getInfo( args["inputJson"], "version" )
-      print( "VERSION=" + version )
+      print(f"VERSION={version}")
    except RuntimeError as e:
       print( e )
       return
@@ -187,16 +186,16 @@ def main():
    except RuntimeError as e:
       print( e )
       return
-   
+
    # Get some info
    fps = ""
    try:
       fps = rig2py.getInfo( "", "fps" )
-      print( "FPS=" + fps )
+      print(f"FPS={fps}")
    except RuntimeError as e:
       print( e )
       return
-   
+
    # Print a summary
    if len(characters):
       averageNumFramesPerCharacter = 0
@@ -204,9 +203,10 @@ def main():
          averageNumFramesPerCharacter = averageNumFramesPerCharacter + character.numFrames
       averageNumFramesPerCharacter = averageNumFramesPerCharacter / len(characters)
       print( "------------------------------------------------------" )
-      print( "Approx " + str(round(averageNumFramesPerCharacter)) + " frames per character, " +
-         str(len(characters)) + " characters, " +
-         "bounds " + str(globalStartFrame) + "->" + str(globalEndFrame) )
+      print((((
+          (f"Approx {str(round(averageNumFramesPerCharacter))} frames per character, "
+           + str(len(characters))) + " characters, ") + "bounds ") +
+             str(globalStartFrame) + "->") + str(globalEndFrame))
    
 if __name__ == "__main__":
    main()
